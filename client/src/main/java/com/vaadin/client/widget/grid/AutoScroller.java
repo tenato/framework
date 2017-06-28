@@ -123,7 +123,9 @@ public class AutoScroller {
             }
 
             case Event.ONTOUCHMOVE:
-                event.cancel();
+                if (cancelEvent) {
+                    event.cancel();
+                }
                 break;
 
             case Event.ONTOUCHEND:
@@ -447,6 +449,8 @@ public class AutoScroller {
 
     private AutoScrollerCallback callback;
 
+    private boolean cancelEvent;
+
     /**
      * Creates a new instance for scrolling the given grid.
      *
@@ -469,12 +473,32 @@ public class AutoScroller {
      */
     public void start(final NativeEvent startEvent, ScrollAxis scrollAxis,
             AutoScrollerCallback callback) {
+        start(startEvent, scrollAxis, callback, true);
+    }
+
+    /**
+     * Starts the automatic scrolling detection.
+     *
+     * @param startEvent
+     *            the event that starts the automatic scroll
+     * @param scrollAxis
+     *            the axis along which the scrolling should happen
+     * @param callback
+     *            the callback for getting info about the automatic scrolling
+     * @param cancelEvent
+     *            should auto scroller cancel the native events or not
+     */
+    public void start(final NativeEvent startEvent, ScrollAxis scrollAxis,
+            AutoScrollerCallback callback, boolean cancelEvent) {
         scrollDirection = scrollAxis;
         this.callback = callback;
+        this.cancelEvent = cancelEvent;
         injectNativeHandler();
         start();
-        startEvent.preventDefault();
-        startEvent.stopPropagation();
+        if (cancelEvent) {
+            startEvent.preventDefault();
+            startEvent.stopPropagation();
+        }
     }
 
     /**

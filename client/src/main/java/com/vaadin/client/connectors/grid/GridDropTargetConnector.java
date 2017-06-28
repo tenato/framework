@@ -29,6 +29,9 @@ import com.vaadin.client.WidgetUtil;
 import com.vaadin.client.extensions.DropTargetExtensionConnector;
 import com.vaadin.client.widget.escalator.RowContainer;
 import com.vaadin.client.widget.escalator.RowContainer.BodyRowContainer;
+import com.vaadin.client.widget.grid.AutoScroller;
+import com.vaadin.client.widget.grid.AutoScroller.AutoScrollerCallback;
+import com.vaadin.client.widget.grid.AutoScroller.ScrollAxis;
 import com.vaadin.client.widgets.Escalator;
 import com.vaadin.shared.MouseEventDetails;
 import com.vaadin.shared.ui.Connect;
@@ -90,6 +93,8 @@ public class GridDropTargetConnector extends DropTargetExtensionConnector {
      * the drag-enter drag-exit events in a consistent order.
      */
     private Element latestTargetElement;
+
+    private AutoScroller autoScroller;
 
     @Override
     protected void extend(ServerConnector target) {
@@ -214,6 +219,13 @@ public class GridDropTargetConnector extends DropTargetExtensionConnector {
             targetElement.addClassName(className);
             currentStyleName = className;
         }
+
+        // initialize auto scroller
+        if (autoScroller == null) {
+            autoScroller = new AutoScroller(gridConnector.getWidget());
+            autoScroller.start(event, ScrollAxis.VERTICAL,
+                    new NooplAutoScrollerCallback());
+        }
     }
 
     private String getTargetClassName(Element target, NativeEvent event) {
@@ -244,6 +256,11 @@ public class GridDropTargetConnector extends DropTargetExtensionConnector {
         Element targetElement = getTargetElement(
                 (Element) event.getEventTarget().cast());
         removeStyles(targetElement);
+
+        if (autoScroller != null) {
+            autoScroller.stop();
+            autoScroller = null;
+        }
     }
 
     private void removeStyles(Element element) {
@@ -327,5 +344,22 @@ public class GridDropTargetConnector extends DropTargetExtensionConnector {
     @Override
     public GridDropTargetState getState() {
         return (GridDropTargetState) super.getState();
+    }
+
+    private final class NooplAutoScrollerCallback
+            implements AutoScrollerCallback {
+
+        @Override
+        public void onAutoScroll(int scrollDiff) {
+        }
+
+        @Override
+        public void onAutoScrollReachedMin() {
+        }
+
+        @Override
+        public void onAutoScrollReachedMax() {
+        }
+
     }
 }
